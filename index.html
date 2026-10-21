@@ -5600,6 +5600,7 @@ async function mulaiScanner() {
   // Tidak mengubah atau menyimpan ulang data Google Sheets.
   const cachePoin = { Positif: null, Negatif: null };
   const requestPoinAktif = { Positif: false, Negatif: false };
+  const antreanCallbackPoin = { Positif: [], Negatif: [] };
 
   let jenisAktif = "";
 
@@ -5795,16 +5796,18 @@ function pilihJenis(jenis) {
 }
 
 function muatPoinJenis(jenis, selesai) {
-
   if (Array.isArray(cachePoin[jenis])) {
-    selesai(cachePoin[jenis]);
+    if (typeof selesai === "function") selesai(cachePoin[jenis]);
     return;
   }
 
+  // Jika permintaan untuk jenis ini sedang berjalan, antrekan callback.
+  // Ini mencegah modal petunjuk menunggu selamanya ketika preload aktif.
+  if (typeof selesai === "function") antreanCallbackPoin[jenis].push(selesai);
   if (requestPoinAktif[jenis]) return;
   requestPoinAktif[jenis] = true;
 
-  const namaCallback = "callbackPoin_" + jenis + "_" + Date.now();
+  const namaCallback = "callbackPoin_" + jenis + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
   let selesaiRequest = false;
   let timer = null;
 
@@ -5815,40 +5818,30 @@ function muatPoinJenis(jenis, selesai) {
     if (timer) clearTimeout(timer);
     delete window[namaCallback];
 
+    const callbacks = antreanCallbackPoin[jenis].splice(0);
     if (gagal || !Array.isArray(data)) {
       if (jenisAktif === jenis) {
         kategori.innerHTML = '<option value="">Gagal memuat kategori</option>';
         poinSelect.innerHTML = '<option value="">Pilih poin</option>';
         nilai.innerText = "-";
       }
+      callbacks.forEach(function(cb) { try { cb(null); } catch (e) {} });
       return;
     }
 
     cachePoin[jenis] = data;
-    selesai(data);
+    callbacks.forEach(function(cb) { try { cb(data); } catch (e) { console.error(e); } });
   };
 
-  window[namaCallback] = function(data) {
-    beres(data, false);
-  };
+  window[namaCallback] = function(data) { beres(data, false); };
 
   const script = document.createElement("script");
-  script.src =
-    APPS_SCRIPT_URL +
-    "?action=poin&jenis=" +
-    encodeURIComponent(jenis) +
-    "&callback=" +
-    namaCallback +
+  script.src = APPS_SCRIPT_URL +
+    "?action=poin&jenis=" + encodeURIComponent(jenis) +
+    "&callback=" + encodeURIComponent(namaCallback) +
     "&_=" + Date.now();
-
-  script.onerror = function() {
-    beres(null, true);
-  };
-
-  timer = setTimeout(function() {
-    beres(null, true);
-  }, 15000);
-
+  script.onerror = function() { beres(null, true); };
+  timer = setTimeout(function() { beres(null, true); }, 15000);
   document.body.appendChild(script);
 }
 
