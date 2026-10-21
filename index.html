@@ -3351,6 +3351,18 @@ body{
           </div>
 
 
+          <div id="poinManualFields" style="display:none; margin-top:12px; padding:14px; border:1px solid #d8e1ea; border-radius:12px; background:#f8fafc;">
+            <div class="field">
+              <label for="uraianPoinManual">Uraian poin / pelanggaran <span style="color:#c83c3c">*</span></label>
+              <textarea id="uraianPoinManual" maxlength="250" placeholder="Tuliskan perilaku positif atau pelanggaran secara jelas..."></textarea>
+            </div>
+            <div class="field">
+              <label for="nilaiPoinManual">Nilai poin (angka positif) <span style="color:#c83c3c">*</span></label>
+              <input id="nilaiPoinManual" type="number" min="1" max="500" step="1" inputmode="numeric" placeholder="Contoh: 10" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:10px; font-size:16px;">
+              <small style="color:#64748b">Masukkan besar poinnya sebagai angka positif. Jenis transaksi menentukan apakah saldo bertambah atau berkurang.</small>
+            </div>
+          </div>
+
           <div class="nilai-box">
             <div class="nilai-label">Nilai Poin</div>
 
@@ -5878,98 +5890,55 @@ function preloadMasterPoin() {
   // =====================================================
 
   function kategoriBerubah() {
-
-    const kategoriDipilih =
-      kategori.value;
-
-
-    poinSelect.innerHTML =
-      '<option value="">Pilih poin</option>';
-
-    nilai.innerText =
-      "-";
-
-
-    if (!kategoriDipilih) {
-
-      return;
-
-    }
-
-
-    const daftarPoin =
-      semuaPoin.filter(
-        function(item) {
-
-          return item.kategori ===
-                 kategoriDipilih;
-
-        }
-      );
-
-
-    daftarPoin.forEach(
-      function(item) {
-
-        const option =
-          document.createElement("option");
-
-        option.value =
-          item.idPoin;
-
-        option.textContent =
-          item.namaPoin +
-          " (" +
-          item.nilai +
-          ")";
-
-        option.dataset.nilai =
-          item.nilai;
-
-        poinSelect.appendChild(option);
-
-      }
-    );
-
+    const kategoriDipilih = kategori.value;
+    poinSelect.innerHTML = '<option value="">Pilih poin</option>';
+    nilai.innerText = "-";
+    const manual = document.getElementById("poinManualFields");
+    if (manual) manual.style.display = "none";
+    if (!kategoriDipilih) { btnSimpan.disabled = true; return; }
+    const daftarPoin = semuaPoin.filter(function(item) { return item.kategori === kategoriDipilih; });
+    daftarPoin.forEach(function(item) {
+      const option = document.createElement("option");
+      option.value = item.idPoin;
+      option.textContent = item.namaPoin + " (" + item.nilai + ")";
+      option.dataset.nilai = item.nilai;
+      poinSelect.appendChild(option);
+    });
+    const optionManual = document.createElement("option");
+    optionManual.value = "__MANUAL__";
+    optionManual.textContent = "Lainnya — input uraian dan poin manual";
+    poinSelect.appendChild(optionManual);
   }
-
 
   // =====================================================
   // POIN BERUBAH
   // =====================================================
 
   function poinBerubah() {
-
-    const pilihan =
-      poinSelect.options[
-        poinSelect.selectedIndex
-      ];
-
-
-    if (!pilihan || !poinSelect.value) {
-
-      nilai.innerText =
-        "-";
-
-      btnSimpan.disabled =
-        true;
-
+    const pilihan = poinSelect.options[poinSelect.selectedIndex];
+    const manualFields = document.getElementById("poinManualFields");
+    const isManual = poinSelect.value === "__MANUAL__";
+    if (manualFields) manualFields.style.display = isManual ? "block" : "none";
+    if (isManual) {
+      const uraian = document.getElementById("uraianPoinManual");
+      const nilaiManual = document.getElementById("nilaiPoinManual");
+      nilai.innerText = nilaiManual && nilaiManual.value ? nilaiManual.value : "Isi nilai manual";
+      btnSimpan.disabled = !(uraian && uraian.value.trim() && nilaiManual && Number(nilaiManual.value) > 0 && Number.isInteger(Number(nilaiManual.value)));
       return;
-
     }
-
-
-    nilai.innerText =
-      pilihan.dataset.nilai;
-
-
-    // Untuk tahap ini tombol tetap dinonaktifkan
-
-    btnSimpan.disabled =
-  false;
-
+    if (!pilihan || !poinSelect.value) {
+      nilai.innerText = "-"; btnSimpan.disabled = true; return;
+    }
+    nilai.innerText = pilihan.dataset.nilai || "-";
+    btnSimpan.disabled = false;
   }
 
+  // Validasi langsung untuk mode manual.
+  document.addEventListener("input", function(event) {
+    if (event.target && (event.target.id === "uraianPoinManual" || event.target.id === "nilaiPoinManual") && poinSelect.value === "__MANUAL__") {
+      poinBerubah();
+    }
+  });
 
   // =====================================================
   // RESET FORM
@@ -5990,8 +5959,13 @@ function preloadMasterPoin() {
     nilai.innerText =
       "-";
 
-    document.getElementById("keterangan").value =
-      "";
+    document.getElementById("keterangan").value = "";
+    const manualFields = document.getElementById("poinManualFields");
+    if (manualFields) manualFields.style.display = "none";
+    const uraianManual = document.getElementById("uraianPoinManual");
+    const nilaiManual = document.getElementById("nilaiPoinManual");
+    if (uraianManual) uraianManual.value = "";
+    if (nilaiManual) nilaiManual.value = "";
 
     document.getElementById(
       "btnPositif"
@@ -6047,17 +6021,15 @@ function simpan() {
 
 
   // Ambil poin yang dipilih
-  const idPoin =
-    poinSelect.value;
-
-
-  if (!idPoin) {
-
-    alert("Silakan pilih poin terlebih dahulu.");
-
-    return;
+  let idPoin = poinSelect.value;
+  const poinManual = idPoin === "__MANUAL__";
+  const uraianManual = (document.getElementById("uraianPoinManual")?.value || "").trim();
+  const nilaiManual = Number(document.getElementById("nilaiPoinManual")?.value || 0);
+  if (!idPoin) { alert("Silakan pilih poin terlebih dahulu."); return; }
+  if (poinManual && (!uraianManual || !Number.isInteger(nilaiManual) || nilaiManual < 1 || nilaiManual > 500)) {
+    alert("Untuk poin Lainnya, isi uraian dan nilai angka bulat 1–500."); return;
   }
-
+  if (poinManual) idPoin = "MANUAL";
 
   // Ambil keterangan
   const keterangan =
@@ -6160,9 +6132,8 @@ function simpan() {
       penggunaAktif.idUser
     ) +
     "&keterangan=" +
-    encodeURIComponent(
-      keterangan
-    ) +
+    encodeURIComponent(poinManual ? ("Input manual " + jenisAktif + ": " + uraianManual + (keterangan ? " | " + keterangan : "")) : keterangan) +
+    (poinManual ? "&jenisManual=" + encodeURIComponent(jenisAktif) + "&namaManual=" + encodeURIComponent(uraianManual) + "&nilaiManual=" + encodeURIComponent(String(nilaiManual)) : "") +
     "&callback=" +
     namaCallback +
     "&_=" + Date.now();
