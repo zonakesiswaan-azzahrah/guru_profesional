@@ -2306,15 +2306,77 @@ body{
         <button id="navDashboard" class="active" onclick="bukaHalamanAdmin('dashboard')">📊 Dashboard</button>
         <button id="navRekapSiswa" onclick="bukaHalamanAdmin('rekapSiswa')">👤 Rekap Siswa</button>
         <button id="navRekapKelas" onclick="bukaHalamanAdmin('rekapKelas')">🏫 Rekap Per Kelas</button>
-        <button id="navRankingPeserta" onclick="bukaHalamanAdmin('rankingPeserta')">🏆 Ranking Peserta Didik</button>
         <button id="navSuratPemanggilan" onclick="bukaHalamanAdmin('suratPemanggilan')">📄 Surat Pemanggilan</button>
         <button id="navSuratPeringatan" onclick="bukaHalamanAdmin('suratPeringatan')">⚠️ Surat Peringatan</button>
         <button id="navTindakLanjut" onclick="bukaHalamanAdmin('tindakLanjut')">🛡️ Tindak Lanjut</button>
+
+        <button id="navRankingPeserta" onclick="bukaHalamanAdmin('rankingPeserta')">🏆 Ranking Peserta Didik</button>
+        <button id="navPusatPrestasi" onclick="bukaHalamanAdmin('pusatPrestasi')">🏆 Pusat Prestasi</button>
+
         <button id="navAbsensiEkskul" onclick="bukaHalamanAdmin('absensiEkskul')">🏃 Rekap Absensi Ekskul</button>
       </div>
 
       <!-- HALAMAN DASHBOARD ADMIN -->
-      <div id="adminDashboardPage" class="admin-page active">
+      <div id="adminRankingPesertaPage" class="admin-page">
+        <div class="rekap-back"><button onclick="bukaHalamanAdmin('dashboard')">← Kembali ke Dashboard</button></div>
+        <div class="card" style="padding:18px">
+          <div class="dashboard-section-title"><div><h3>🏆 Ranking Peserta Didik</h3><span>Ranking poin negatif dan poin saat ini ditampilkan terpisah</span></div><button onclick="muatRankingPesertaDidik()">↻ Muat Ulang</button></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0">
+            <div><label for="rankingFilterKelas">Filter Kelas</label><select id="rankingFilterKelas" onchange="renderRankingPesertaDidik()" style="width:100%;padding:10px;border:1px solid #d7dde5;border-radius:9px"><option value="">Semua Kelas</option></select></div>
+            <div><label for="rankingCariNama">Cari Nama / ID</label><input id="rankingCariNama" oninput="renderRankingPesertaDidik()" placeholder="Ketik nama atau ID siswa" style="width:100%;padding:10px;border:1px solid #d7dde5;border-radius:9px"></div>
+          </div>
+          <div id="rankingPesertaStatus" class="dashboard-loading">Memuat ranking...</div>
+          <div class="dashboard-section-title" style="margin-top:20px"><h3>⚠️ Ranking Poin Negatif</h3><span id="rankingNegatifJumlah"></span></div>
+          <div id="rankingNegatifTabel" class="rekap-table-wrap"></div>
+          <div class="dashboard-section-title" style="margin-top:24px"><h3>💎 Ranking Poin Saat Ini</h3><span id="rankingSaatIniJumlah"></span></div>
+          <div id="rankingSaatIniTabel" class="rekap-table-wrap"></div>
+        </div>
+      </div>
+
+      
+      
+      <div id="adminPusatPrestasiPage" class="admin-page">
+        <div class="dashboard-section-title"><div><h3>🏆 Pusat Prestasi Peserta Didik</h3><span>Dokumentasi prestasi akademik dan nonakademik SDIT Azzahrah</span></div><button onclick="muatDataPrestasi()">↻ Muat Ulang</button></div>
+        <div class="dashboard-kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Total Prestasi</div><div id="prestasiKpiTotal" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Siswa Berprestasi</div><div id="prestasiKpiSiswa" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Akademik</div><div id="prestasiKpiAkademik" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Nonakademik</div><div id="prestasiKpiNonakademik" class="kpi-value">0</div></div>
+        </div>
+        <div class="card" style="padding:18px;margin:14px 0">
+          <h3 id="prestasiFormTitle">➕ Input Prestasi Baru</h3>
+          <form id="formPrestasi" onsubmit="event.preventDefault();simpanDataPrestasi();">
+            <input type="hidden" id="prestasiId">
+            <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+              <label>Tanggal kegiatan<input type="date" id="prestasiTanggal" required></label>
+              <label>Tahun pelajaran<select id="prestasiTahun" required><option value="2026/2027">2026/2027</option><option value="2027/2028">2027/2028</option><option value="2025/2026">2025/2026</option></select></label>
+              <label>ID / Nama siswa<input id="prestasiCariSiswa" list="prestasiDaftarSiswa" placeholder="Ketik ID atau nama siswa" required><datalist id="prestasiDaftarSiswa"></datalist><input type="hidden" id="prestasiIdSiswa"></label>
+              <label>Jenis prestasi<select id="prestasiJenis" required><option value="Akademik">Akademik</option><option value="Nonakademik">Nonakademik</option></select></label>
+              <label>Nama lomba / kegiatan<input id="prestasiNamaKegiatan" required maxlength="200" placeholder="Contoh: Olimpiade Matematika"></label>
+              <label>Penyelenggara<input id="prestasiPenyelenggara" maxlength="200" placeholder="Nama penyelenggara"></label>
+              <label>Tingkat lomba<select id="prestasiTingkat" required><option value="Internal Sekolah">Internal Sekolah</option><option value="Kecamatan">Kecamatan</option><option value="Kabupaten/Kota">Kabupaten/Kota</option><option value="Provinsi">Provinsi</option><option value="Nasional">Nasional</option><option value="Internasional">Internasional</option></select></label>
+              <label>Peringkat / penghargaan<select id="prestasiPeringkat" required><option value="Juara 1">Juara 1</option><option value="Juara 2">Juara 2</option><option value="Juara 3">Juara 3</option><option value="Harapan">Harapan</option><option value="Finalis">Finalis</option><option value="Peserta">Peserta</option><option value="Penghargaan Khusus">Penghargaan Khusus</option></select></label>
+              <label>Bukti sertifikat / foto<input type="file" id="prestasiBukti" accept="image/*,.pdf"></label>
+            </div>
+            <label style="display:block;margin-top:12px">Keterangan<textarea id="prestasiKeterangan" rows="2" maxlength="1000" placeholder="Catatan tambahan (opsional)"></textarea></label>
+            <p style="font-size:12px;color:#777">Bukti akan diunggah ke Google Drive. Batas ukuran berkas 4 MB. Tautan disimpan pada data prestasi.</p>
+            <div id="prestasiPesan" role="status" style="margin:8px 0"></div>
+            <button type="submit" id="btnSimpanPrestasi">Simpan Prestasi</button> <button type="button" onclick="resetFormPrestasi()">Bersihkan Form</button>
+          </form>
+        </div>
+        <div class="card" style="padding:18px;margin:14px 0">
+          <h3>📊 Rekap dan Ranking Prestasi</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+            <label>Tahun pelajaran<select id="filterPrestasiTahun" onchange="renderDataPrestasi()"><option value="">Semua tahun</option><option>2026/2027</option><option>2025/2026</option><option>2027/2028</option></select></label>
+            <label>Kelas<select id="filterPrestasiKelas" onchange="renderDataPrestasi()"><option value="">Semua kelas</option></select></label>
+            <label>Jenis<select id="filterPrestasiJenis" onchange="renderDataPrestasi()"><option value="">Semua jenis</option><option>Akademik</option><option>Nonakademik</option></select></label>
+            <label>Cari siswa/kegiatan<input id="filterPrestasiCari" oninput="renderDataPrestasi()" placeholder="Nama siswa atau lomba"></label>
+          </div>
+          <div id="prestasiTabel" style="overflow-x:auto;margin-top:12px">Memuat data...</div>
+          <h4>🏅 Rekap jumlah prestasi dan juara</h4><div id="prestasiRanking" style="overflow-x:auto"></div>
+        </div>
+      </div>
+<div id="adminDashboardPage" class="admin-page active">
 
       <div id="dashboardStatus" class="dashboard-status-premium">
         Mengambil data terbaru dari Google Sheets...
@@ -2596,23 +2658,6 @@ body{
       </div>
       </div>
 
-
-      <!-- HALAMAN RANKING PESERTA DIDIK -->
-      <div id="adminRankingPesertaPage" class="admin-page">
-        <div class="rekap-back"><button onclick="bukaHalamanAdmin('dashboard')">← Kembali ke Dashboard</button></div>
-        <div class="card" style="padding:18px">
-          <div class="dashboard-section-title"><div><h3>🏆 Ranking Peserta Didik</h3><span>Ranking poin negatif dan poin saat ini ditampilkan terpisah</span></div><button onclick="muatRankingPesertaDidik()">↻ Muat Ulang</button></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0">
-            <div><label for="rankingFilterKelas">Filter Kelas</label><select id="rankingFilterKelas" onchange="renderRankingPesertaDidik()" style="width:100%;padding:10px;border:1px solid #d7dde5;border-radius:9px"><option value="">Semua Kelas</option></select></div>
-            <div><label for="rankingCariNama">Cari Nama / ID</label><input id="rankingCariNama" oninput="renderRankingPesertaDidik()" placeholder="Ketik nama atau ID siswa" style="width:100%;padding:10px;border:1px solid #d7dde5;border-radius:9px"></div>
-          </div>
-          <div id="rankingPesertaStatus" class="dashboard-loading">Memuat ranking...</div>
-          <div class="dashboard-section-title" style="margin-top:20px"><h3>⚠️ Ranking Poin Negatif</h3><span id="rankingNegatifJumlah"></span></div>
-          <div id="rankingNegatifTabel" class="rekap-table-wrap"></div>
-          <div class="dashboard-section-title" style="margin-top:24px"><h3>💎 Ranking Poin Saat Ini</h3><span id="rankingSaatIniJumlah"></span></div>
-          <div id="rankingSaatIniTabel" class="rekap-table-wrap"></div>
-        </div>
-      </div>
 
       <!-- HALAMAN REKAP ABSENSI EKSKUL ADMIN V7.1 -->
       <div id="adminAbsensiEkskulPage" class="admin-page">
@@ -3105,12 +3150,42 @@ body{
     </div>
 
     <!-- =========================
+         PILIH MODE SIPKAR UNTUK GURU
+         ========================= -->
+    <div id="sipkarModeGuruV71" class="card" style="display:none;margin-top:14px">
+      <div class="scanner-heading-pro">
+        <div class="scanner-icon-pro">📝</div>
+        <div class="scanner-heading-copy">
+          <h2>Input Poin SIPKAR</h2>
+          <p>Pilih cara menemukan peserta didik sebelum memilih kategori kedisiplinan.</p>
+        </div>
+      </div>
+      <div class="v71-menu-wrap" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div class="v71-menu-card" onclick="mulaiModeScanSIPKARV71()">
+          <div class="v71-menu-icon">📷</div><h3>Mode Scan QR</h3>
+          <p>Arahkan kamera ke QR Code siswa.</p><span class="v71-menu-badge">Cepat & Praktis</span>
+        </div>
+        <div class="v71-menu-card" onclick="bukaCariNamaSIPKARV71()">
+          <div class="v71-menu-icon">🔎</div><h3>Mencari Nama</h3>
+          <p>Cari siswa berdasarkan nama atau ID jika QR tidak tersedia.</p><span class="v71-menu-badge">Pencarian Siswa</span>
+        </div>
+      </div>
+      <div id="sipkarCariPanelV71" style="display:none;margin-top:14px">
+        <label for="sipkarCariNamaV71" style="display:block;font-weight:700;margin-bottom:7px">Nama atau ID Siswa</label>
+        <input id="sipkarCariNamaV71" type="search" placeholder="Ketik nama atau ID siswa..." autocomplete="off" oninput="renderCariNamaSIPKARV71()" style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #d6dbe3;border-radius:12px;font-size:16px">
+        <div id="sipkarCariStatusV71" class="v71-status" style="margin-top:10px">Memuat data siswa...</div>
+        <div id="sipkarCariHasilV71" class="v71-manual-results" style="margin-top:10px"></div>
+      </div>
+      <div style="margin-top:14px"><button class="v71-btn v71-btn-light" type="button" onclick="kembaliKeMenuGuruV71()">← Kembali ke Menu</button></div>
+    </div>
+
+    <!-- =========================
          ABSENSI EKSKUL GURU V7.1
          ========================= -->
     <div id="absensiEkskulGuruV71" class="v71-page">
       <div class="v71-panel">
         <h2>🏃 Absensi Ekstrakurikuler</h2>
-        <p>Scan QR siswa. Setiap scan yang valid otomatis tercatat sebagai <b>HADIR</b>.</p>
+        <p>Scan QR siswa atau centang nama peserta. Gabungkan kedua cara, lalu simpan seluruh kehadiran sekaligus.</p>
         <div class="v71-row">
           <div class="v71-field">
             <label for="v71EkskulSelect">Jenis Ekstrakurikuler</label>
@@ -3138,7 +3213,7 @@ body{
 
         <div class="v71-manual-box">
           <div class="v71-manual-title">🔎 Tidak membawa QR Code?</div>
-          <div class="v71-manual-help">Cari nama peserta yang terdaftar pada ekstrakurikuler ini, pilih siswa, lalu tekan <b>HADIR</b>.</div>
+          <div class="v71-manual-help">Peserta hasil scan otomatis dicentang. Cari dan centang peserta lain yang hadir, lalu simpan semua pilihan sekaligus.</div>
           <button class="v71-btn v71-btn-light" type="button" onclick="bukaAbsensiManualV71()">🔎 Cari Nama Siswa</button>
           <div id="v71AbsensiManualPanel" style="display:none;margin-top:12px">
             <div class="v71-manual-search-row">
@@ -3159,7 +3234,7 @@ body{
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-          <button class="v71-btn v71-btn-primary" onclick="mulaiAbsensiEkskulV71()">📷 Mulai Scan</button>
+          <button class="v71-btn v71-btn-primary" onclick="mulaiAbsensiEkskulV71()">📷 Mulai / Lanjut Scan</button>
           <button class="v71-btn v71-btn-light" onclick="kembaliKeMenuGuruV71()">← Kembali</button>
         </div>
       </div>
@@ -4586,6 +4661,25 @@ function renderRankingPesertaDidik(){
  const n=filter(d.rankingNegatif||[]),s=filter(d.rankingSaatIni||[]);document.getElementById("rankingNegatifJumlah").textContent=n.length+" siswa";document.getElementById("rankingSaatIniJumlah").textContent=s.length+" siswa";document.getElementById("rankingNegatifTabel").innerHTML=tabel(n,"poinNegatif");document.getElementById("rankingSaatIniTabel").innerHTML=tabel(s,"poinSaatIni");
 }
 
+
+
+// ==================== PUSAT PRESTASI ====================
+let cachePrestasi=[], masterSiswaPrestasi=[];
+function jsonpPrestasi(action, params={}){return new Promise((resolve,reject)=>{const cb='cbPrestasi_'+Date.now()+'_'+Math.floor(Math.random()*10000);const sc=document.createElement('script');const tm=setTimeout(()=>{cleanup();reject(new Error('Server tidak merespons.'))},20000);function cleanup(){clearTimeout(tm);delete window[cb];sc.remove()}window[cb]=d=>{cleanup();resolve(d)};sc.onerror=()=>{cleanup();reject(new Error('Tidak dapat menghubungi Apps Script.'))};const q=new URLSearchParams({action,callback:cb,...params});sc.src=APPS_SCRIPT_URL+'?'+q.toString();document.body.appendChild(sc)})}
+function pesanPrestasi(t,err=false){const e=document.getElementById('prestasiPesan');if(e){e.textContent=t;e.style.color=err?'#b91c1c':'#16734a'}}
+function siapkanPusatPrestasi(){const d=document.getElementById('prestasiTanggal');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);muatDataPrestasi()}
+async function muatDataPrestasi(){const box=document.getElementById('prestasiTabel');if(box)box.textContent='Memuat data prestasi...';try{const r=await jsonpPrestasi('dataPrestasi');if(!r.berhasil)throw new Error(r.pesan||'Gagal memuat prestasi');cachePrestasi=r.data||[];masterSiswaPrestasi=r.siswa||[];const dl=document.getElementById('prestasiDaftarSiswa');dl.innerHTML=masterSiswaPrestasi.map(s=>`<option value="${escPrestasi(s.idSiswa+' — '+s.nama+' ('+s.kelas+')')}"></option>`).join('');const fk=document.getElementById('filterPrestasiKelas');const kelas=[...new Set(masterSiswaPrestasi.map(s=>s.kelas).filter(Boolean))].sort();fk.innerHTML='<option value="">Semua kelas</option>'+kelas.map(k=>`<option>${escPrestasi(k)}</option>`).join('');renderDataPrestasi()}catch(e){if(box)box.textContent=e.message;pesanPrestasi(e.message,true)}}
+function escPrestasi(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function siswaPrestasiDipilih(){const v=document.getElementById('prestasiCariSiswa').value.trim();return masterSiswaPrestasi.find(s=>v===s.idSiswa||v===s.nama||v===`${s.idSiswa} — ${s.nama} (${s.kelas})`)}
+function renderDataPrestasi(){const th=document.getElementById('filterPrestasiTahun')?.value||'',kl=document.getElementById('filterPrestasiKelas')?.value||'',jn=document.getElementById('filterPrestasiJenis')?.value||'',q=(document.getElementById('filterPrestasiCari')?.value||'').toLowerCase().trim();const rows=cachePrestasi.filter(x=>(!th||x.tahunPelajaran===th)&&(!kl||x.kelas===kl)&&(!jn||x.jenis===jn)&&(!q||`${x.nama} ${x.namaKegiatan} ${x.idSiswa}`.toLowerCase().includes(q)));document.getElementById('prestasiKpiTotal').textContent=rows.length;document.getElementById('prestasiKpiSiswa').textContent=new Set(rows.map(x=>x.idSiswa)).size;document.getElementById('prestasiKpiAkademik').textContent=rows.filter(x=>x.jenis==='Akademik').length;document.getElementById('prestasiKpiNonakademik').textContent=rows.filter(x=>x.jenis==='Nonakademik').length;const tbl=document.getElementById('prestasiTabel');tbl.innerHTML=rows.length?'<table class="rekap-table"><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Prestasi</th><th>Jenis</th><th>Tingkat</th><th>Peringkat</th><th>Bukti</th><th>Aksi</th></tr></thead><tbody>'+rows.map(x=>`<tr><td>${escPrestasi(x.tanggal)}</td><td>${escPrestasi(x.nama)}<br><small>${escPrestasi(x.idSiswa)}</small></td><td>${escPrestasi(x.kelas)}</td><td>${escPrestasi(x.namaKegiatan)}</td><td>${escPrestasi(x.jenis)}</td><td>${escPrestasi(x.tingkat)}</td><td>${escPrestasi(x.peringkat)}</td><td>${x.urlBukti?`<a href="${escPrestasi(x.urlBukti)}" target="_blank" rel="noopener">Buka bukti</a>`:'-'}</td><td><button onclick="editPrestasi('${escPrestasi(x.idPrestasi)}')">Edit</button> <button onclick="hapusPrestasi('${escPrestasi(x.idPrestasi)}')">Hapus</button></td></tr>`).join('')+'</tbody></table>':'<p>Belum ada data prestasi sesuai filter.</p>';const counts={};rows.forEach(x=>{const k=x.idSiswa+'|'+x.nama+'|'+x.kelas;counts[k]??={nama:x.nama,kelas:x.kelas,total:0,juara:0,akademik:0,nonakademik:0};counts[k].total++;if(/^Juara [123]$/.test(x.peringkat))counts[k].juara++;if(x.jenis==='Akademik')counts[k].akademik++;else counts[k].nonakademik++});const rank=Object.values(counts).sort((a,b)=>b.juara-a.juara||b.total-a.total||a.nama.localeCompare(b.nama,'id'));document.getElementById('prestasiRanking').innerHTML=rank.length?'<table class="rekap-table"><thead><tr><th>No.</th><th>Nama</th><th>Kelas</th><th>Total Prestasi</th><th>Jumlah Juara</th><th>Akademik</th><th>Nonakademik</th></tr></thead><tbody>'+rank.map((x,i)=>`<tr><td>${i+1}</td><td>${escPrestasi(x.nama)}</td><td>${escPrestasi(x.kelas)}</td><td>${x.total}</td><td>${x.juara}</td><td>${x.akademik}</td><td>${x.nonakademik}</td></tr>`).join('')+'</tbody></table>':'<p>Belum ada rekap.</p>'}
+async function simpanDataPrestasi(){const siswa=siswaPrestasiDipilih();if(!siswa){pesanPrestasi('Pilih siswa yang valid dari daftar master siswa.',true);return}const file=document.getElementById('prestasiBukti').files[0];if(file&&file.size>4*1024*1024){pesanPrestasi('Ukuran berkas maksimal 4 MB.',true);return}const btn=document.getElementById('btnSimpanPrestasi');btn.disabled=true;pesanPrestasi('Menyimpan data prestasi...');try{let urlBukti='';if(file){pesanPrestasi('Mengunggah bukti ke Google Drive...');urlBukti=await uploadBuktiPrestasi(file)}const data={idPrestasi:document.getElementById('prestasiId').value,tanggal:document.getElementById('prestasiTanggal').value,tahunPelajaran:document.getElementById('prestasiTahun').value,idSiswa:siswa.idSiswa,jenis:document.getElementById('prestasiJenis').value,namaKegiatan:document.getElementById('prestasiNamaKegiatan').value.trim(),penyelenggara:document.getElementById('prestasiPenyelenggara').value.trim(),tingkat:document.getElementById('prestasiTingkat').value,peringkat:document.getElementById('prestasiPeringkat').value,keterangan:document.getElementById('prestasiKeterangan').value.trim(),urlBukti:urlBukti};const r=await jsonpPrestasi('simpanPrestasi',{data:JSON.stringify(data)});if(!r.berhasil)throw new Error(r.pesan||'Gagal menyimpan');pesanPrestasi('Prestasi berhasil disimpan.');resetFormPrestasi(false);await muatDataPrestasi()}catch(e){pesanPrestasi(e.message,true)}finally{btn.disabled=false}}
+function uploadBuktiPrestasi(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(new Error('Berkas tidak dapat dibaca.'));fr.onload=()=>{const dataUrl=String(fr.result);const form=document.createElement('form');form.method='POST';form.action=APPS_SCRIPT_URL;form.target='prestasiUploadFrame';form.enctype='application/x-www-form-urlencoded';[['action','uploadBuktiPrestasi'],['namaFile',file.name],['mimeType',file.type||'application/octet-stream'],['dataBase64',dataUrl.split(',')[1]]].forEach(([name,value])=>{const i=document.createElement('input');i.type='hidden';i.name=name;i.value=value;form.appendChild(i)});let frame=document.getElementById('prestasiUploadFrame');if(!frame){frame=document.createElement('iframe');frame.name='prestasiUploadFrame';frame.id='prestasiUploadFrame';frame.style.display='none';document.body.appendChild(frame)}let done=false;const timer=setTimeout(()=>finish(new Error('Waktu unggah habis. Periksa izin Apps Script/Google Drive.')),45000);function finish(err,url){if(done)return;done=true;clearTimeout(timer);window.removeEventListener('message',onmsg);form.remove();err?reject(err):resolve(url)}function onmsg(e){if(!e.data||e.data.type!=='ZONA_PRESTASI_UPLOAD')return;if(e.data.ok&&e.data.url)finish(null,e.data.url);else finish(new Error(e.data.message||'Unggah gagal.'))}window.addEventListener('message',onmsg);document.body.appendChild(form);form.submit()};fr.readAsDataURL(file)})}
+function resetFormPrestasi(clearMsg=true){document.getElementById('formPrestasi').reset();document.getElementById('prestasiId').value='';document.getElementById('prestasiFormTitle').textContent='➕ Input Prestasi Baru';document.getElementById('btnSimpanPrestasi').textContent='Simpan Prestasi';if(clearMsg)pesanPrestasi('');const d=document.getElementById('prestasiTanggal');if(d)d.value=new Date().toISOString().slice(0,10)}
+function editPrestasi(id){const x=cachePrestasi.find(y=>y.idPrestasi===id);if(!x)return;document.getElementById('prestasiId').value=x.idPrestasi;document.getElementById('prestasiTanggal').value=x.tanggalISO||'';document.getElementById('prestasiTahun').value=x.tahunPelajaran;document.getElementById('prestasiCariSiswa').value=`${x.idSiswa} — ${x.nama} (${x.kelas})`;document.getElementById('prestasiJenis').value=x.jenis;document.getElementById('prestasiNamaKegiatan').value=x.namaKegiatan;document.getElementById('prestasiPenyelenggara').value=x.penyelenggara||'';document.getElementById('prestasiTingkat').value=x.tingkat;document.getElementById('prestasiPeringkat').value=x.peringkat;document.getElementById('prestasiKeterangan').value=x.keterangan||'';document.getElementById('prestasiFormTitle').textContent='✏️ Edit Prestasi';document.getElementById('btnSimpanPrestasi').textContent='Simpan Perubahan';document.getElementById('prestasiBukti').value='';document.getElementById('prestasiFormTitle').scrollIntoView({behavior:'smooth'})}
+async function hapusPrestasi(id){if(!confirm('Hapus catatan prestasi ini? Tindakan ini tidak dapat dibatalkan.'))return;try{const r=await jsonpPrestasi('hapusPrestasi',{idPrestasi:id});if(!r.berhasil)throw new Error(r.pesan||'Gagal menghapus');pesanPrestasi('Data prestasi dihapus.');await muatDataPrestasi()}catch(e){pesanPrestasi(e.message,true)}}
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='ZONA_PRESTASI_UPLOAD'&&e.data.url){window._zonaLastPrestasiUpload=e.data.url}});
+// ================= END PUSAT PRESTASI =================
+
 function bukaHalamanAdmin(halaman) {
 
   if (
@@ -4626,9 +4720,11 @@ function bukaHalamanAdmin(halaman) {
 
   const absensiEkskulPage = document.getElementById("adminAbsensiEkskulPage");
   const rankingPesertaPage = document.getElementById("adminRankingPesertaPage");
+  const pusatPrestasiPage = document.getElementById("adminPusatPrestasiPage");
+  const navPusatPrestasi = document.getElementById("navPusatPrestasi");
   const navRankingPeserta = document.getElementById("navRankingPeserta");
 
-  if (!dashboardPage || !rekapPage || !rekapKelasPage || !tindakPage || !suratPage || !suratPeringatanPage || !absensiEkskulPage || !rankingPesertaPage) {
+  if (!dashboardPage || !rekapPage || !rekapKelasPage || !tindakPage || !suratPage || !suratPeringatanPage || !absensiEkskulPage || !rankingPesertaPage || !pusatPrestasiPage) {
     return;
   }
 
@@ -4640,6 +4736,8 @@ function bukaHalamanAdmin(halaman) {
   suratPeringatanPage.classList.remove("active");
   absensiEkskulPage.classList.remove("active");
   rankingPesertaPage.classList.remove("active");
+  pusatPrestasiPage.classList.remove("active");
+  if (navPusatPrestasi) navPusatPrestasi.classList.remove("active");
   if (navRankingPeserta) navRankingPeserta.classList.remove("active");
   if (navDashboard) navDashboard.classList.remove("active");
   if (navRekap) navRekap.classList.remove("active");
@@ -4648,6 +4746,13 @@ function bukaHalamanAdmin(halaman) {
   if (navSurat) navSurat.classList.remove("active");
   if (navSuratPeringatan) navSuratPeringatan.classList.remove("active");
   if (navAbsensiEkskul) navAbsensiEkskul.classList.remove("active");
+
+  if (halaman === "pusatPrestasi") {
+    pusatPrestasiPage.classList.add("active");
+    if (navPusatPrestasi) navPusatPrestasi.classList.add("active");
+    siapkanPusatPrestasi();
+    return;
+  }
 
   if (halaman === "rankingPeserta") {
     rankingPesertaPage.classList.add("active");
@@ -5562,35 +5667,7 @@ async function mulaiScanner() {
       return;
     }
 
-    siswaAktif = siswa;
-
-    // Tampilkan data siswa
-    document.getElementById("nama").innerText =
-      siswa.nama;
-
-    document.getElementById("idSiswa").innerText =
-      "ID Siswa: " + siswa.idSiswa;
-
-    document.getElementById("kelas").innerText =
-      "Kelas: " + siswa.kelas;
-
-    document.getElementById("poin").innerText =
-      siswa.poin;
-
-    // Sembunyikan scanner
-    bagianScanner.style.display =
-      "none";
-
-    // Tampilkan data siswa
-    dataSiswa.style.display =
-      "block";
-
-    // Tampilkan form poin
-    formPoin.style.display =
-      "block";
-
-    // Reset form
-    resetForm();
+    tampilkanDataSiswaSIPKARV71(siswa);
 
   };
 
@@ -5638,6 +5715,19 @@ async function mulaiScanner() {
 
 }
 
+
+function tampilkanDataSiswaSIPKARV71(siswa){
+  siswaAktif=siswa;
+  const mode=document.getElementById("sipkarModeGuruV71");if(mode)mode.style.display="none";
+  document.getElementById("bagianScanner").style.display="none";
+  document.getElementById("dataSiswa").style.display="block";
+  document.getElementById("formPoin").style.display="block";
+  document.getElementById("nama").innerText=siswa.nama||"";
+  document.getElementById("idSiswa").innerText="ID Siswa: "+(siswa.idSiswa||"");
+  document.getElementById("kelas").innerText="Kelas: "+(siswa.kelas||"");
+  document.getElementById("poin").innerText=siswa.poin||"0";
+  resetForm();
+}
 
   // =====================================================
 // PILIH JENIS
@@ -5926,9 +6016,14 @@ function preloadMasterPoin() {
   // =====================================================
 
   function kembaliScanner() {
-
-    location.reload();
-
+    try { hentikanScannerQR(); } catch(e) {}
+    siswaAktif=null;jenisAktif="";qrSedangDiproses=false;
+    document.getElementById("dataSiswa").style.display="none";
+    document.getElementById("formPoin").style.display="none";
+    document.getElementById("bagianScanner").style.display="none";
+    const mode=document.getElementById("sipkarModeGuruV71");if(mode)mode.style.display="block";
+    const panel=document.getElementById("sipkarCariPanelV71");if(panel)panel.style.display="none";
+    document.getElementById("sipkarCariHasilV71").innerHTML="";
   }
 
 
@@ -7276,10 +7371,22 @@ function v71Jsonp(action, params, onSuccess, onError, timeoutMs) {
   document.body.appendChild(script);
 }
 
+let daftarCariSiswaSIPKARV71 = [];
+let cariSiswaSIPKARDimuatV71 = false;
+
 function bukaModeInputPoinV71(){
   v71ModeGuru="poin";
   document.getElementById("guruMenuV71").style.display="none";
   document.getElementById("absensiEkskulGuruV71").classList.remove("active");
+  document.getElementById("bagianScanner").style.display="none";
+  document.getElementById("dataSiswa").style.display="none";
+  document.getElementById("sipkarModeGuruV71").style.display="block";
+  document.getElementById("sipkarCariPanelV71").style.display="none";
+  preloadMasterPoin();
+}
+
+function mulaiModeScanSIPKARV71(){
+  document.getElementById("sipkarModeGuruV71").style.display="none";
   document.getElementById("bagianScanner").style.display="block";
   document.getElementById("dataSiswa").style.display="none";
   document.getElementById("formPoin").style.display="none";
@@ -7288,12 +7395,47 @@ function bukaModeInputPoinV71(){
   mulaiScanner();
 }
 
+function bukaCariNamaSIPKARV71(){
+  const panel=document.getElementById("sipkarCariPanelV71");
+  panel.style.display="block";
+  const status=document.getElementById("sipkarCariStatusV71");
+  const input=document.getElementById("sipkarCariNamaV71");
+  if(cariSiswaSIPKARDimuatV71){renderCariNamaSIPKARV71();if(input)input.focus();return;}
+  status.className="v71-status";status.textContent="Memuat daftar siswa...";
+  v71Jsonp("searchSiswaSIPKAR",{},function(data){
+    if(!data||data.berhasil===false){status.className="v71-status err";status.textContent="❌ "+((data&&data.pesan)||"Daftar siswa gagal dimuat.");return;}
+    daftarCariSiswaSIPKARV71=(Array.isArray(data.data)?data.data:[]).map(function(x){return {idSiswa:String(x.idSiswa||x.ID_Siswa||"").trim(),nama:String(x.nama||x.namaSiswa||x.Nama_Siswa||"").trim(),kelas:String(x.kelas||x.Kelas||"").trim()};}).filter(function(x){return x.idSiswa&&x.nama;});
+    cariSiswaSIPKARDimuatV71=true;status.className="v71-status ok";status.textContent="✓ "+daftarCariSiswaSIPKARV71.length+" siswa tersedia. Ketik nama atau ID untuk mencari.";renderCariNamaSIPKARV71();if(input)input.focus();
+  },function(err){status.className="v71-status err";status.textContent="❌ "+err.message;});
+}
+
+function renderCariNamaSIPKARV71(){
+  const input=document.getElementById("sipkarCariNamaV71"),out=document.getElementById("sipkarCariHasilV71");if(!out)return;
+  const q=String(input?input.value:"").trim().toLowerCase();
+  if(!cariSiswaSIPKARDimuatV71){out.innerHTML="";return;}
+  const rows=daftarCariSiswaSIPKARV71.filter(function(x){return !q||(x.nama+" "+x.idSiswa+" "+x.kelas).toLowerCase().includes(q);}).slice(0,80);
+  if(!rows.length){out.innerHTML='<div class="v71-status">Tidak ada siswa yang cocok dengan pencarian.</div>';return;}
+  out.innerHTML=rows.map(function(x){return `<button type="button" class="v71-manual-student" data-id="${escapeHtmlV71(x.idSiswa)}" onclick="pilihSiswaCariSIPKARV71(this.dataset.id)" style="width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;padding:12px;border-radius:12px;margin-bottom:7px;cursor:pointer"><strong>${escapeHtmlV71(x.nama)}</strong><span style="display:block;color:#667085;font-size:13px">ID: ${escapeHtmlV71(x.idSiswa)} · Kelas ${escapeHtmlV71(x.kelas)}</span><span style="display:block;color:#0f766e;font-weight:700;margin-top:5px">Pilih siswa →</span></button>`;}).join("")+(rows.length===80?'<div class="v71-status">Menampilkan maksimal 80 hasil. Persempit pencarian.</div>':'');
+}
+
+function pilihSiswaCariSIPKARV71(idSiswa){
+  const status=document.getElementById("sipkarCariStatusV71");status.className="v71-status";status.textContent="Mengambil data siswa...";
+  const cb="cbCariPilihSiswa_"+Date.now();let selesai=false;
+  const script=document.createElement("script");
+  const bersih=function(){try{script.remove();}catch(e){}delete window[cb];};
+  const timer=setTimeout(function(){if(selesai)return;selesai=true;bersih();status.className="v71-status err";status.textContent="❌ Server tidak merespons. Silakan coba lagi.";},15000);
+  window[cb]=function(siswa){if(selesai)return;selesai=true;clearTimeout(timer);bersih();if(!siswa||!siswa.ditemukan){status.className="v71-status err";status.textContent="❌ Data siswa tidak ditemukan.";return;}tampilkanDataSiswaSIPKARV71(siswa);};
+  script.onerror=function(){if(selesai)return;selesai=true;clearTimeout(timer);bersih();status.className="v71-status err";status.textContent="❌ Gagal menghubungi server.";};
+  script.src=APPS_SCRIPT_URL+"?qr="+encodeURIComponent(idSiswa)+"&callback="+cb+"&_="+Date.now();document.body.appendChild(script);
+}
+
 function kembaliKeMenuGuruV71(){
   try{ hentikanScannerQR(); }catch(e){}
   v71ModeGuru="menu"; v71AbsensiProcessing=false;
   document.getElementById("bagianScanner").style.display="none";
   document.getElementById("dataSiswa").style.display="none";
   document.getElementById("formPoin").style.display="none";
+  const sipkarMode=document.getElementById("sipkarModeGuruV71");if(sipkarMode)sipkarMode.style.display="none";
   document.getElementById("absensiEkskulGuruV71").classList.remove("active");
   document.getElementById("guruMenuV71").style.display="block";
 }
@@ -7375,7 +7517,6 @@ function bukaAbsensiManualV71(){
   hasil.innerHTML="";
   terpilih.style.display="none";
   v71SiswaManualTerpilih=null;
-  v71SiswaManualTerpilihSet=new Set();
   if(input) input.value="";
   if(v71PesertaManual.length){
     status.className="v71-status ok";
@@ -7569,23 +7710,47 @@ async function qrBerhasilV71Absensi(qrText){
   if(!idSiswa){v71AbsensiProcessing=false;return;}
   try{await hentikanScannerQR();}catch(e){}
   const status=document.getElementById("v71AbsensiStatus");
-  status.className="v71-status"; status.innerText="Memeriksa peserta...";
-  v71Jsonp("simpanAbsensiEkskul",{idSiswa:idSiswa,idEkskul:v71EkskulAktif,pertemuan:v71PertemuanAktif,tanggal:ambilTanggalAbsensiV71(),idUser:(penggunaAktif&&penggunaAktif.idUser)||""},function(data){
-    const hasil=document.getElementById("v71AbsensiHasil"); hasil.style.display="block";
-    if(data && data.berhasil){
-      hasil.innerHTML='<strong>'+escapeHtmlV71(data.namaSiswa||idSiswa)+'</strong><div class="v71-hadir">✓ HADIR</div><div>'+escapeHtmlV71(data.waktuScan||"")+'</div>';
-      status.className="v71-status ok"; status.innerText="✓ Absensi berhasil disimpan. Siap scan siswa berikutnya.";
-    }else{
-      const pesanErr=(data&&data.pesan)||"Absensi tidak dapat disimpan.";
-      hasil.innerHTML='<strong>'+escapeHtmlV71(idSiswa)+'</strong><div>'+escapeHtmlV71(pesanErr)+'</div>';
-      status.className="v71-status err"; status.innerText="❌ "+pesanErr;
-    }
+  status.className="v71-status";
+  status.innerText="Memeriksa peserta hasil scan...";
+
+  function selesaiScan(pesan,ok){
+    status.className=ok?"v71-status ok":"v71-status err";
+    status.innerText=pesan;
     v71AbsensiProcessing=false;
-    setTimeout(function(){ if(v71ModeGuru==="absensi" && document.getElementById("absensiEkskulGuruV71").classList.contains("active")){ mulaiScannerAbsensiV71(); } },350);
-  },function(err){
-    status.className="v71-status err"; status.innerText="❌ "+err.message; v71AbsensiProcessing=false;
-    setTimeout(function(){if(v71ModeGuru==="absensi")mulaiScannerAbsensiV71();},350);
-  });
+    setTimeout(function(){
+      if(v71ModeGuru==="absensi" && document.getElementById("absensiEkskulGuruV71").classList.contains("active")) mulaiScannerAbsensiV71();
+    },350);
+  }
+
+  function tandaiPeserta(){
+    const siswa=v71PesertaManual.find(function(x){return x.idSiswa===idSiswa;});
+    const hasil=document.getElementById("v71AbsensiHasil");
+    if(!siswa){
+      if(hasil){hasil.style.display="block";hasil.innerHTML='<strong>'+escapeHtmlV71(idSiswa)+'</strong><div>❌ Siswa tidak terdaftar pada ekstrakurikuler yang dipilih.</div>';}
+      selesaiScan("❌ Siswa tidak terdaftar pada ekskul ini.",false);
+      return;
+    }
+    const sudahDipilih=v71SiswaManualTerpilihSet.has(idSiswa);
+    v71SiswaManualTerpilihSet.add(idSiswa);
+    const panel=document.getElementById("v71AbsensiManualPanel");
+    if(panel)panel.style.display="block";
+    const input=document.getElementById("v71CariNamaSiswa");
+    if(input)input.value="";
+    renderPesertaManualV71("");
+    if(hasil){hasil.style.display="block";hasil.innerHTML='<strong>'+escapeHtmlV71(siswa.nama)+'</strong><div class="v71-hadir">✓ TERPILIH HADIR</div><div>'+ (sudahDipilih?'Siswa ini sudah masuk daftar pilihan.':'Ditambahkan ke daftar hadir. Tekan Simpan Absensi untuk menyimpan semua pilihan.') +'</div>';}
+    selesaiScan((sudahDipilih?'ℹ️ ':'✓ ')+siswa.nama+(sudahDipilih?' sudah dipilih sebelumnya.':' ditambahkan ke daftar hadir. Lanjut scan atau centang nama lain, lalu simpan.'),true);
+  }
+
+  if(v71PesertaManual.length){tandaiPeserta();return;}
+  v71Jsonp("pesertaEkskul",{idEkskul:v71EkskulAktif},function(data){
+    if(!data||data.berhasil===false){selesaiScan("❌ Daftar peserta gagal dimuat.",false);return;}
+    const rows=Array.isArray(data.data)?data.data:[];
+    v71PesertaManual=rows.map(function(row){
+      if(Array.isArray(row))return {idSiswa:String(row[0]||"").trim().toUpperCase(),nama:String(row[1]||"").trim(),idEkskul:String(row[2]||v71EkskulAktif).trim(),tahun:String(row[3]||"").trim(),status:String(row[4]||"").trim()};
+      return {idSiswa:String(row.idSiswa||row.ID_Siswa||"").trim().toUpperCase(),nama:String(row.namaSiswa||row.nama||row.Nama_Siswa||"").trim(),idEkskul:String(row.idEkskul||row.ID_Ekskul||v71EkskulAktif).trim(),tahun:String(row.tahunPelajaran||row.tahun||row.Tahun_Pelajaran||"").trim(),status:String(row.status||row.Status||"").trim()};
+    }).filter(function(x){return x.idSiswa&&x.nama&&String(x.status||"AKTIF").toUpperCase()==="AKTIF";});
+    tandaiPeserta();
+  },function(err){selesaiScan("❌ "+err.message,false);});
 }
 
 // Override the existing QR success path only while the Guru is in attendance mode.
