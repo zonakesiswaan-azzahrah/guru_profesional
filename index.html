@@ -3170,6 +3170,20 @@ body{
           <p>Cari siswa berdasarkan nama atau ID jika QR tidak tersedia.</p><span class="v71-menu-badge">Pencarian Siswa</span>
         </div>
       </div>
+      <div style="margin-top:14px">
+        <button class="v71-btn v71-btn-light" type="button" onclick="bukaPetunjukPoinSIPKAR()">📘 Petunjuk Kategori & Nama Poin</button>
+      </div>
+      <div id="petunjukPoinSIPKAR" role="dialog" aria-modal="true" aria-labelledby="judulPetunjukPoinSIPKAR" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.62);padding:16px;box-sizing:border-box;overflow:auto">
+        <div style="max-width:760px;margin:4vh auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:88vh;overflow:auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <h2 id="judulPetunjukPoinSIPKAR" style="margin:0;color:#7f1d1d">📘 Petunjuk Kedisiplinan</h2>
+            <button type="button" onclick="tutupPetunjukPoinSIPKAR()" aria-label="Tutup petunjuk" style="border:0;border-radius:10px;padding:9px 13px;background:#f3f4f6;font-size:18px">✕</button>
+          </div>
+          <p style="color:#64748b;margin:8px 0 16px">Referensi kategori dan nama poin yang tersedia di master SIPKAR.</p>
+          <div id="isiPetunjukPoinSIPKAR"><p>Memuat daftar poin...</p></div>
+          <button class="v71-btn v71-btn-light" type="button" onclick="tutupPetunjukPoinSIPKAR()" style="margin-top:16px">Tutup</button>
+        </div>
+      </div>
       <div id="sipkarCariPanelV71" style="display:none;margin-top:14px">
         <label for="sipkarCariNamaV71" style="display:block;font-weight:700;margin-bottom:7px">Nama atau ID Siswa</label>
         <input id="sipkarCariNamaV71" type="search" placeholder="Ketik nama atau ID siswa..." autocomplete="off" oninput="renderCariNamaSIPKARV71()" style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #d6dbe3;border-radius:12px;font-size:16px">
@@ -5844,6 +5858,56 @@ function preloadMasterPoin() {
       muatPoinJenis(jenis, function() {});
     }
   });
+}
+
+// Petunjuk poin untuk guru: menggunakan data master yang sama dengan formulir.
+function bukaPetunjukPoinSIPKAR() {
+  const modal = document.getElementById("petunjukPoinSIPKAR");
+  const isi = document.getElementById("isiPetunjukPoinSIPKAR");
+  if (!modal || !isi) return;
+  modal.style.display = "block";
+  isi.innerHTML = '<p style="color:#64748b">Memuat daftar poin positif dan negatif...</p>';
+  let selesai = 0;
+  let gagal = false;
+  function siap() {
+    selesai++;
+    if (selesai < 2) return;
+    if (gagal) {
+      isi.innerHTML = '<p style="color:#b91c1c">Daftar poin belum berhasil dimuat. Periksa koneksi internet, lalu tutup dan buka kembali petunjuk ini.</p>';
+      return;
+    }
+    isi.innerHTML = ["Positif", "Negatif"].map(function(jenis) {
+      const daftar = Array.isArray(cachePoin[jenis]) ? cachePoin[jenis] : [];
+      const grup = {};
+      daftar.forEach(function(item) {
+        const kat = String(item.kategori || "Tanpa kategori");
+        if (!grup[kat]) grup[kat] = [];
+        grup[kat].push(item);
+      });
+      const warna = jenis === "Positif" ? "#166534" : "#991b1b";
+      const latar = jenis === "Positif" ? "#f0fdf4" : "#fef2f2";
+      let bagian = '<section style="margin:14px 0;padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:'+latar+'"><h3 style="margin:0 0 12px;color:'+warna+'">'+(jenis === "Positif" ? "👍 POIN POSITIF" : "⚠️ POIN NEGATIF")+'</h3>';
+      const kategori = Object.keys(grup).sort(function(a,b){return a.localeCompare(b,"id");});
+      if (!kategori.length) bagian += '<p>Belum ada data poin.</p>';
+      kategori.forEach(function(namaKategori) {
+        bagian += '<div style="margin:10px 0;padding:10px;background:#fff;border-radius:10px"><strong style="color:#334155">'+escapeHtml(namaKategori)+'</strong><ul style="margin:7px 0 0;padding-left:20px">';
+        grup[namaKategori].forEach(function(item) {
+          bagian += '<li style="margin:5px 0">'+escapeHtml(item.namaPoin || "Tanpa nama")+' <strong>('+escapeHtml(String(item.nilai == null ? "-" : item.nilai))+' poin)</strong></li>';
+        });
+        bagian += '</ul></div>';
+      });
+      bagian += '</section>';
+      return bagian;
+    }).join("");
+  }
+  ["Positif", "Negatif"].forEach(function(jenis) {
+    if (Array.isArray(cachePoin[jenis])) { siap(); return; }
+    muatPoinJenis(jenis, function(data) { if (!Array.isArray(data)) gagal = true; siap(); });
+  });
+}
+function tutupPetunjukPoinSIPKAR() {
+  const modal = document.getElementById("petunjukPoinSIPKAR");
+  if (modal) modal.style.display = "none";
 }
 
 
