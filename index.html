@@ -3163,6 +3163,8 @@ body{
       <div class="v71-menu-wrap" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
         <div class="v71-menu-card" onclick="wkBukaTab('absensi')"><div class="v71-menu-icon">🗓️</div><h3>Absensi Kelas</h3><p>Catat kehadiran siswa per mata pelajaran.</p></div>
         <div class="v71-menu-card" onclick="wkBukaTab('nilai')"><div class="v71-menu-icon">📚</div><h3>Input Nilai</h3><p>Buat jenis penilaian sendiri dan simpan nilai per semester.</p></div>
+        <div class="v71-menu-card" onclick="wkBukaTab('rekapAbsensi')"><div class="v71-menu-icon">📊</div><h3>Rekap Absensi</h3><p>Lihat rekap kehadiran bulanan per mata pelajaran dan cetak PDF.</p></div>
+        <div class="v71-menu-card" onclick="wkBukaTab('rekapNilai')"><div class="v71-menu-icon">🧾</div><h3>Rekap Nilai</h3><p>Lihat nilai bulanan berdasarkan jenis penilaian dan cetak PDF.</p></div>
       </div>
       <div id="wkAbsensiPanel" style="display:none;margin-top:18px">
         <h3>🗓️ Absensi per Mata Pelajaran</h3>
@@ -3184,6 +3186,26 @@ body{
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatTabelNilai()">Tampilkan Siswa</button></div>
         <div id="wkNilaiStatus" class="v71-status">Isi mata pelajaran dan jenis penilaian.</div><div id="wkNilaiTabel"></div>
         <button class="v71-btn v71-btn-primary" style="width:100%;margin-top:12px" onclick="wkSimpanNilai()">💾 Simpan Nilai</button>
+      </div>
+      <div id="wkRekapAbsensiPanel" style="display:none;margin-top:18px">
+        <h3>📊 Rekap Absensi Bulanan</h3>
+        <div class="v71-field"><label for="wkRekapAbsBulan">Periode bulan</label><input id="wkRekapAbsBulan" type="month"></div>
+        <div class="v71-field"><label for="wkRekapAbsTP">Tahun Pelajaran</label><input id="wkRekapAbsTP" type="text" value="2026/2027"></div>
+        <div class="v71-field"><label for="wkRekapAbsSemester">Semester</label><select id="wkRekapAbsSemester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div class="v71-field"><label for="wkRekapAbsMapel">Mata Pelajaran (kosong = semua)</label><input id="wkRekapAbsMapel" type="text" placeholder="Contoh: IPAS"></div>
+        <div class="v71-field"><label for="wkRekapAbsTTD">Nama Guru Mata Pelajaran (penanda tangan)</label><input id="wkRekapAbsTTD" type="text" placeholder="Nama lengkap guru mapel"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatRekap('absensi')">Tampilkan Rekap</button><button class="v71-btn v71-btn-light" onclick="wkCetakRekap('absensi')">🖨️ Cetak / Simpan PDF</button></div>
+        <div id="wkRekapAbsStatus" class="v71-status">Pilih bulan untuk melihat rekap.</div><div id="wkRekapAbsHasil"></div>
+      </div>
+      <div id="wkRekapNilaiPanel" style="display:none;margin-top:18px">
+        <h3>🧾 Rekap Nilai Bulanan</h3>
+        <div class="v71-field"><label for="wkRekapNilaiBulan">Periode bulan</label><input id="wkRekapNilaiBulan" type="month"></div>
+        <div class="v71-field"><label for="wkRekapNilaiTP">Tahun Pelajaran</label><input id="wkRekapNilaiTP" type="text" value="2026/2027"></div>
+        <div class="v71-field"><label for="wkRekapNilaiSemester">Semester</label><select id="wkRekapNilaiSemester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div class="v71-field"><label for="wkRekapNilaiMapel">Mata Pelajaran (kosong = semua)</label><input id="wkRekapNilaiMapel" type="text" placeholder="Contoh: IPAS"></div>
+        <div class="v71-field"><label for="wkRekapNilaiTTD">Nama Guru Mata Pelajaran (penanda tangan)</label><input id="wkRekapNilaiTTD" type="text" placeholder="Nama lengkap guru mapel"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatRekap('nilai')">Tampilkan Rekap</button><button class="v71-btn v71-btn-light" onclick="wkCetakRekap('nilai')">🖨️ Cetak / Simpan PDF</button></div>
+        <div id="wkRekapNilaiStatus" class="v71-status">Pilih bulan untuk melihat rekap.</div><div id="wkRekapNilaiHasil"></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="v71-btn v71-btn-light" onclick="wkKembaliKeMenu()">← Kembali ke Menu Kegiatan</button></div>
     </div>
@@ -7928,7 +7950,7 @@ function bukaFiturWaliKelas(){
   document.getElementById('wkAbsTanggal').value=wkToday();document.getElementById('wkNilaiTanggal').value=wkToday();
   wkApi('waliKelasData',{idUser:penggunaAktif.idUser}).then(d=>{wkRoster=d.siswa||[];document.getElementById('wkInfoKelas').textContent='Kelas '+d.guru.waliKelas+' • '+wkRoster.length+' peserta didik • '+d.guru.nama;}).catch(e=>{document.getElementById('wkInfoKelas').textContent='Gagal memuat data kelas: '+e.message;});
 }
-function wkBukaTab(tab){document.getElementById('wkAbsensiPanel').style.display=tab==='absensi'?'block':'none';document.getElementById('wkNilaiPanel').style.display=tab==='nilai'?'block':'none';if(tab==='absensi')wkMuatAbsensi();else wkMuatTabelNilai();}
+function wkBukaTab(tab){document.getElementById('wkAbsensiPanel').style.display=tab==='absensi'?'block':'none';document.getElementById('wkNilaiPanel').style.display=tab==='nilai'?'block':'none';document.getElementById('wkRekapAbsensiPanel').style.display=tab==='rekapAbsensi'?'block':'none';document.getElementById('wkRekapNilaiPanel').style.display=tab==='rekapNilai'?'block':'none';if(tab==='absensi')wkMuatAbsensi();else if(tab==='nilai')wkMuatTabelNilai();else{const m=wkToday().slice(0,7);['wkRekapAbsBulan','wkRekapNilaiBulan'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.value)e.value=m;});}}
 function wkKembaliKeMenu(){document.getElementById('halamanWaliKelas').style.display='none';document.getElementById('guruMenuV71').style.display='block';}
 function wkStatus(id,msg,err=false){const e=document.getElementById(id);if(e){e.textContent=msg;e.className='v71-status '+(err?'err':'');}}
 function wkGetAbsParams(){return {idUser:penggunaAktif.idUser,tanggal:document.getElementById('wkAbsTanggal').value,tahunPelajaran:document.getElementById('wkAbsTP').value.trim(),semester:document.getElementById('wkAbsSemester').value,mataPelajaran:document.getElementById('wkAbsMapel').value.trim()};}
@@ -7939,6 +7961,47 @@ function wkSimpanAbsensi(){const p=wkGetAbsParams();p.data=wkAbsRows.map(s=>({id
 function wkMuatTabelNilai(){if(!wkRoster.length){wkStatus('wkNilaiStatus','Memuat daftar siswa...');wkApi('waliKelasData',{idUser:penggunaAktif.idUser}).then(d=>{wkRoster=d.siswa||[];wkRenderNilai();}).catch(e=>wkStatus('wkNilaiStatus','Gagal: '+e.message,true));return;}wkRenderNilai();}
 function wkRenderNilai(){const out=document.getElementById('wkNilaiTabel');if(!wkRoster.length){out.innerHTML='<p>Belum ada siswa untuk kelas ini.</p>';return;}out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Nilai (0–100)</th><th>Deskripsi (opsional)</th></tr></thead><tbody>'+wkRoster.map((s,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(s.nama)+'<br><small>'+wkEsc(s.idSiswa)+'</small></td><td><input type="number" min="0" max="100" step="0.01" data-wknilai="'+wkEsc(s.idSiswa)+'" placeholder="0–100" style="width:90px"></td><td><input data-wkdes="'+wkEsc(s.idSiswa)+'" placeholder="Catatan" style="min-width:100px;width:100%"></td></tr>').join('')+'</tbody></table></div>';wkStatus('wkNilaiStatus','Masukkan nilai untuk '+wkRoster.length+' siswa. Kolom nilai kosong akan dilewati.');}
 function wkSimpanNilai(){const p={idUser:penggunaAktif.idUser,tahunPelajaran:document.getElementById('wkNilaiTP').value.trim(),semester:document.getElementById('wkNilaiSemester').value,mataPelajaran:document.getElementById('wkNilaiMapel').value.trim(),jenisPenilaian:document.getElementById('wkNilaiJenis').value.trim(),tanggal:document.getElementById('wkNilaiTanggal').value,data:wkRoster.map(s=>({idSiswa:s.idSiswa,nilai:document.querySelector('[data-wknilai="'+CSS.escape(s.idSiswa)+'"]')?.value||'',deskripsi:document.querySelector('[data-wkdes="'+CSS.escape(s.idSiswa)+'"]')?.value||''})).filter(x=>x.nilai!=='')};if(!p.data.length){wkStatus('wkNilaiStatus','Masukkan setidaknya satu nilai.',true);return;}wkStatus('wkNilaiStatus','Menyimpan nilai...');wkApi('waliKelasNilaiSave',{idUser:penggunaAktif.idUser,data:JSON.stringify(p)}).then(d=>wkStatus('wkNilaiStatus','✓ '+d.pesan+' ('+d.jumlah+' nilai).')).catch(e=>wkStatus('wkNilaiStatus','Gagal menyimpan: '+e.message,true));}
+
+
+let wkRekapAktif={absensi:null,nilai:null};
+function wkMuatRekap(jenis){
+ const abs=jenis==='absensi'; const prefix=abs?'wkRekapAbs':'wkRekapNilai';
+ const bulan=document.getElementById(prefix+'Bulan').value;
+ const tp=document.getElementById(prefix+'TP').value.trim();
+ const semester=document.getElementById(prefix+'Semester').value;
+ const mataPelajaran=document.getElementById(prefix+'Mapel').value.trim();
+ const statusId=abs?'wkRekapAbsStatus':'wkRekapNilaiStatus';
+ const hasilId=abs?'wkRekapAbsHasil':'wkRekapNilaiHasil';
+ if(!bulan||!tp){wkStatus(statusId,'Periode bulan dan tahun pelajaran wajib diisi.',true);return;}
+ wkStatus(statusId,'Memuat rekap bulanan...');
+ wkApi(abs?'waliKelasRekapAbsensi':'waliKelasRekapNilai',{idUser:penggunaAktif.idUser,bulan:bulan,tahunPelajaran:tp,semester:semester,mataPelajaran:mataPelajaran})
+ .then(d=>{wkRekapAktif[jenis]={...d,jenis:jenis,bulan:bulan,tahunPelajaran:tp,semester:semester,mataPelajaran:mataPelajaran};
+   if(abs)wkRenderRekapAbsensi(d,hasilId);else wkRenderRekapNilai(d,hasilId);
+   wkStatus(statusId,'✓ Rekap dimuat: '+(d.jumlah||0)+' catatan.');
+ }).catch(e=>wkStatus(statusId,'Gagal memuat rekap: '+e.message,true));
+}
+function wkRenderRekapAbsensi(d,target){
+ const rows=d.rekap||[]; const out=document.getElementById(target);
+ if(!rows.length){out.innerHTML='<p>Belum ada data absensi pada periode ini.</p>';return;}
+ out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Total</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(r.nama)+'</td><td>'+r.hadir+'</td><td>'+r.sakit+'</td><td>'+r.izin+'</td><td>'+r.alpa+'</td><td>'+r.total+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function wkRenderRekapNilai(d,target){
+ const rows=d.rekap||[]; const out=document.getElementById(target);
+ if(!rows.length){out.innerHTML='<p>Belum ada data nilai pada periode ini.</p>';return;}
+ out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Mata Pelajaran</th><th>Jenis Penilaian</th><th>Nilai</th><th>Deskripsi</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(r.nama)+'</td><td>'+wkEsc(r.mataPelajaran)+'</td><td>'+wkEsc(r.jenisPenilaian)+'</td><td>'+wkEsc(r.nilai)+'</td><td>'+wkEsc(r.deskripsi)+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function wkCetakRekap(jenis){
+ const d=wkRekapAktif[jenis]; if(!d){alert('Tampilkan rekap terlebih dahulu sebelum mencetak.');return;}
+ const abs=jenis==='absensi'; const namaTTD=(document.getElementById(abs?'wkRekapAbsTTD':'wkRekapNilaiTTD').value||'').trim();
+ if(!namaTTD){alert('Isi nama Guru Mata Pelajaran yang akan bertanda tangan.');return;}
+ const bulanNama=new Date(d.bulan+'-01T12:00:00').toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+ let rows='';
+ if(abs){rows=(d.rekap||[]).map((r,i)=>'<tr><td>'+ (i+1) +'</td><td>'+wkEsc(r.nama)+'</td><td class="num">'+r.hadir+'</td><td class="num">'+r.sakit+'</td><td class="num">'+r.izin+'</td><td class="num">'+r.alpa+'</td><td class="num">'+r.total+'</td></tr>').join('');}
+ else {rows=(d.rekap||[]).map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(r.nama)+'</td><td>'+wkEsc(r.mataPelajaran)+'</td><td>'+wkEsc(r.jenisPenilaian)+'</td><td class="num">'+wkEsc(r.nilai)+'</td><td>'+wkEsc(r.deskripsi||'')+'</td></tr>').join('');}
+ const heads=abs?'<th>No</th><th>Nama Siswa</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Total</th>':'<th>No</th><th>Nama Siswa</th><th>Mata Pelajaran</th><th>Jenis Penilaian</th><th>Nilai</th><th>Deskripsi</th>';
+ const doc='<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Rekap '+(abs?'Absensi':'Nilai')+' Bulanan</title><style>@page{size:A4 landscape;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:11px}h1{font-size:18px;text-align:center;margin:0}h2{font-size:14px;text-align:center;margin:5px 0 14px}.meta{margin:16px 0 10px;line-height:1.7}table{border-collapse:collapse;width:100%;margin-top:10px}th,td{border:1px solid #555;padding:6px;text-align:left}th{background:#eee}.num{text-align:center}.signature{width:260px;margin:36px 0 0 auto;text-align:center;line-height:1.6}.signspace{height:58px}.name{text-decoration:underline;font-weight:bold}@media print{button{display:none}}</style></head><body><h1>SD ISLAM TERPADU AZZAHRAH</h1><h2>REKAP '+(abs?'ABSENSI':'NILAI')+' BULANAN</h2><div class="meta">Kelas: '+wkEsc(d.guru.waliKelas)+'<br>Tahun Pelajaran: '+wkEsc(d.tahunPelajaran)+'<br>Semester: '+(d.semester==='1'?'1 (Ganjil)':'2 (Genap)')+'<br>Periode: '+wkEsc(bulanNama)+'<br>Mata Pelajaran: '+wkEsc(d.mataPelajaran||'Semua Mata Pelajaran')+'<br>Jumlah catatan: '+(d.jumlah||0)+'</div><table><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table><div class="signature">'+wkEsc('Gowa')+', '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'<br>Guru Mata Pelajaran<div class="signspace"></div><div class="name">'+wkEsc(namaTTD)+'</div></div><script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>';
+ const w=window.open('','_blank'); if(!w){alert('Popup diblokir. Izinkan popup untuk mencetak PDF.');return;}w.document.open();w.document.write(doc);w.document.close();
+}
 
 </script>
 
