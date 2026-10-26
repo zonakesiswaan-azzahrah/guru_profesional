@@ -2176,17 +2176,6 @@ body{
 .v71-btn-hadir:disabled{opacity:.6;cursor:wait}
 .v71-btn-batal{border:1px solid #d5dbe3;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;background:#fff;color:#475569}
 @media(max-width:600px){.v71-manual-search-row{flex-direction:column}}
-
-/* PROFIL PENGGUNA PERSISTEN — ditambahkan tanpa mengubah header utama */
-#profilPenggunaPersisten{display:none;position:sticky;top:0;z-index:900;background:#fffdf8;border-bottom:1px solid #eadbb2;box-shadow:0 4px 14px rgba(80,30,30,.08);padding:9px 14px}
-.profil-persisten-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:10px}
-.profil-persisten-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fbe7b1;color:#861923;font-size:20px}
-.profil-persisten-copy{min-width:0;flex:1}
-.profil-persisten-label{font-size:10px;font-weight:800;letter-spacing:.6px;color:#8a6b27;text-transform:uppercase}
-#profilPenggunaNama{font-size:14px;font-weight:800;color:#741923;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#profilPenggunaRole{font-size:11px;color:#667085;margin-top:2px}
-#profilPenggunaKeluar{border:1px solid #eadbb2;border-radius:10px;padding:8px 11px;background:#fff;color:#741923;font-weight:700;font-size:12px;cursor:pointer}
-@media(max-width:480px){#profilPenggunaPersisten{padding:8px 10px}.profil-persisten-avatar{width:34px;height:34px;flex-basis:34px}#profilPenggunaNama{font-size:13px}#profilPenggunaKeluar{padding:7px 9px}}
 </style>
 
 </head>
@@ -2213,18 +2202,6 @@ body{
         <div>♡ <span>Berakhlak</span></div>
         <div>🏆 <span>Berprestasi</span></div>
       </div>
-    </div>
-  </div>
-
-  <div id="profilPenggunaPersisten" aria-live="polite">
-    <div class="profil-persisten-inner">
-      <div class="profil-persisten-avatar" aria-hidden="true">👨‍🏫</div>
-      <div class="profil-persisten-copy">
-        <div class="profil-persisten-label">Pengguna Aktif</div>
-        <div id="profilPenggunaNama">Nama Guru</div>
-        <div id="profilPenggunaRole">Guru • SDIT Azzahrah</div>
-      </div>
-      <button id="profilPenggunaKeluar" type="button" onclick="logout()">Keluar</button>
     </div>
   </div>
 
@@ -3167,9 +3144,48 @@ body{
           <p>Pilih ekstrakurikuler, pilih pertemuan, lalu scan QR siswa.</p>
           <span class="v71-menu-badge">V7.1</span>
         </div>
+        <div id="menuWaliKelasCard" class="v71-menu-card" onclick="bukaFiturWaliKelas()" style="display:none">
+          <div class="v71-menu-icon">🏫</div>
+          <h3>Wali Kelas</h3>
+          <p>Kelola absensi setiap mata pelajaran dan input nilai kelas.</p>
+          <span id="badgeWaliKelas" class="v71-menu-badge">Kelas Saya</span>
+        </div>
       </div>
       <div id="v71GuruMenuStatus" class="v71-status">Silakan pilih kegiatan.</div>
       <button class="v71-btn v71-btn-light" onclick="logout()">Keluar</button>
+    </div>
+
+    <!-- =========================
+         FITUR WALI KELAS
+         ========================= -->
+    <div id="halamanWaliKelas" class="card" style="display:none;margin-top:14px">
+      <div class="scanner-heading-pro"><div class="scanner-icon-pro">🏫</div><div class="scanner-heading-copy"><h2>Wali Kelas</h2><p id="wkInfoKelas">Memuat informasi kelas...</p></div></div>
+      <div class="v71-menu-wrap" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div class="v71-menu-card" onclick="wkBukaTab('absensi')"><div class="v71-menu-icon">🗓️</div><h3>Absensi Kelas</h3><p>Catat kehadiran siswa per mata pelajaran.</p></div>
+        <div class="v71-menu-card" onclick="wkBukaTab('nilai')"><div class="v71-menu-icon">📚</div><h3>Input Nilai</h3><p>Buat jenis penilaian sendiri dan simpan nilai per semester.</p></div>
+      </div>
+      <div id="wkAbsensiPanel" style="display:none;margin-top:18px">
+        <h3>🗓️ Absensi per Mata Pelajaran</h3>
+        <div class="v71-field"><label for="wkAbsTanggal">Tanggal</label><input id="wkAbsTanggal" type="date"></div>
+        <div class="v71-field"><label for="wkAbsTP">Tahun Pelajaran</label><input id="wkAbsTP" type="text" value="2026/2027" placeholder="2026/2027"></div>
+        <div class="v71-field"><label for="wkAbsSemester">Semester</label><select id="wkAbsSemester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div class="v71-field"><label for="wkAbsMapel">Mata Pelajaran</label><input id="wkAbsMapel" type="text" placeholder="Contoh: IPAS"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatAbsensi()">Tampilkan Daftar</button><button class="v71-btn v71-btn-light" onclick="wkSetSemuaStatus('Hadir')">Semua Hadir</button></div>
+        <div id="wkAbsStatus" class="v71-status">Pilih tanggal, semester, dan mata pelajaran.</div><div id="wkAbsTabel"></div>
+        <button class="v71-btn v71-btn-primary" style="width:100%;margin-top:12px" onclick="wkSimpanAbsensi()">💾 Simpan Absensi</button>
+      </div>
+      <div id="wkNilaiPanel" style="display:none;margin-top:18px">
+        <h3>📚 Input Nilai</h3>
+        <div class="v71-field"><label for="wkNilaiTP">Tahun Pelajaran</label><input id="wkNilaiTP" type="text" value="2026/2027" placeholder="2026/2027"></div>
+        <div class="v71-field"><label for="wkNilaiSemester">Semester</label><select id="wkNilaiSemester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
+        <div class="v71-field"><label for="wkNilaiMapel">Mata Pelajaran</label><input id="wkNilaiMapel" type="text" placeholder="Contoh: IPAS"></div>
+        <div class="v71-field"><label for="wkNilaiJenis">Jenis Penilaian (bebas)</label><input id="wkNilaiJenis" type="text" placeholder="Contoh: Tugas 1, Praktik, Sumatif Bab 2"></div>
+        <div class="v71-field"><label for="wkNilaiTanggal">Tanggal Penilaian</label><input id="wkNilaiTanggal" type="date"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatTabelNilai()">Tampilkan Siswa</button></div>
+        <div id="wkNilaiStatus" class="v71-status">Isi mata pelajaran dan jenis penilaian.</div><div id="wkNilaiTabel"></div>
+        <button class="v71-btn v71-btn-primary" style="width:100%;margin-top:12px" onclick="wkSimpanNilai()">💾 Simpan Nilai</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="v71-btn v71-btn-light" onclick="wkKembaliKeMenu()">← Kembali ke Menu Kegiatan</button></div>
     </div>
 
     <!-- =========================
@@ -3552,7 +3568,8 @@ function login() {
 
         username: hasil.username,
 
-        role: hasil.role
+        role: hasil.role,
+        waliKelas: hasil.waliKelas || ""
 
       };
 
@@ -3621,24 +3638,7 @@ function login() {
 // MASUK KE SIPKAR SETELAH LOGIN
 // =====================================================
 
-function perbaruiProfilPenggunaPersisten() {
-  const bar = document.getElementById("profilPenggunaPersisten");
-  const nama = document.getElementById("profilPenggunaNama");
-  const roleEl = document.getElementById("profilPenggunaRole");
-  if (!bar || !nama || !roleEl) return;
-  if (!penggunaAktif || !penggunaAktif.nama) {
-    bar.style.display = "none";
-    return;
-  }
-  nama.textContent = String(penggunaAktif.nama);
-  const role = String(penggunaAktif.role || "pengguna").trim();
-  roleEl.textContent = (role ? role.charAt(0).toUpperCase() + role.slice(1) : "Pengguna") + " • SDIT Azzahrah";
-  bar.style.display = "block";
-}
-
 function masukKeSIPKAR() {
-
-  perbaruiProfilPenggunaPersisten();
 
   document.getElementById("halamanLogin").style.display = "none";
   document.getElementById("dataSiswa").style.display = "none";
@@ -3658,6 +3658,14 @@ function masukKeSIPKAR() {
   document.getElementById("dashboardAdmin").style.display = "none";
   document.getElementById("guruMenuV71").style.display = "block";
   document.getElementById("bagianScanner").style.display = "none";
+  const wkCard = document.getElementById("menuWaliKelasCard");
+  if (wkCard) {
+    const isGuru = role === "guru";
+    const assignedClass = String(penggunaAktif.waliKelas || "").trim();
+    wkCard.style.display = isGuru && assignedClass ? "block" : "none";
+    const badge = document.getElementById("badgeWaliKelas");
+    if (badge && assignedClass) badge.textContent = assignedClass;
+  }
   document.getElementById("absensiEkskulGuruV71").classList.remove("active");
 
   const infoPengguna = document.getElementById("infoPengguna");
@@ -5478,8 +5486,6 @@ function logout() {
 
   localStorage.removeItem("sipkar_pengguna");
   penggunaAktif = null;
-  const profilBarKeluar = document.getElementById("profilPenggunaPersisten");
-  if (profilBarKeluar) profilBarKeluar.style.display = "none";
 
   document.getElementById("dashboardAdmin").style.display = "none";
   document.getElementById("bagianScanner").style.display = "none";
@@ -5560,8 +5566,6 @@ function prosesLogoutDariURL() {
 
     localStorage.removeItem("sipkar_pengguna");
     penggunaAktif = null;
-    const profilBarURL = document.getElementById("profilPenggunaPersisten");
-    if (profilBarURL) profilBarURL.style.display = "none";
 
     history.replaceState(
       {},
@@ -7895,6 +7899,46 @@ function cetakRekapAbsensiEkskulV71(){
   w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Rekap Absensi Ekskul - '+escapeHtmlV71(namaEks)+'</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#222}h1{font-size:20px;color:#8f1018}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:7px;font-size:12px;text-align:center}th{background:#8f1018;color:#fff}td:nth-child(2){text-align:left}.head{text-align:center;margin-bottom:18px}.sig{margin-top:55px;text-align:right}.sig>div{display:inline-block;min-width:260px;text-align:center}.v71-hadir-cell{font-size:18px;font-weight:700}.v71-rekap-ekskul-table th small{font-weight:400;font-size:10px}</style></head><body><div class="head"><b>SEKOLAH ISLAM TERPADU AZZAHRAH</b><h1>REKAP ABSENSI EKSTRAKURIKULER</h1><div>'+escapeHtmlV71(namaEks)+' • '+escapeHtmlV71(bulan)+' '+escapeHtmlV71(tahun)+'</div></div>'+ (document.getElementById("v71AdminHasil")?.innerHTML||"") + '<div class="sig"><div>Mengetahui,<br>Wakil Kepala Sekolah<br>Bidang Kesiswaan<br><br><br><b>Nur Abdillah Kasim, S.Pd., Gr.</b></div></div></body></html>');
   w.document.close(); setTimeout(function(){w.focus();w.print();},500);
 }
+
+
+// =====================================================
+// WALI KELAS — FRONTEND
+// =====================================================
+let wkRoster = [];
+let wkAbsRows = [];
+function wkApi(action, params={}) {
+  return new Promise((resolve,reject)=>{
+    const cb='cbWK_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{cleanup();reject(new Error('Server tidak merespons. Coba ulangi.'));},20000);
+    function cleanup(){clearTimeout(timeout);delete window[cb];script.remove();}
+    window[cb]=data=>{cleanup();if(data&&data.berhasil===false)reject(new Error(data.pesan||'Permintaan gagal.'));else resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error('Tidak dapat menghubungi Apps Script.'));};
+    const query=new URLSearchParams({action,callback:cb,...params});
+    script.src=APPS_SCRIPT_URL+'?'+query.toString()+'&_='+Date.now();document.body.appendChild(script);
+  });
+}
+function wkEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function wkToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function bukaFiturWaliKelas(){
+  if(!penggunaAktif||String(penggunaAktif.role||'').toLowerCase()!=='guru'||!String(penggunaAktif.waliKelas||'').trim()){alert('Akun ini belum ditetapkan sebagai wali kelas pada kolom G PENGGUNA.');return;}
+  ['guruMenuV71','sipkarModeGuruV71','absensiEkskulGuruV71','bagianScanner','halamanWaliKelas'].forEach(id=>{const e=document.getElementById(id);if(e){if(id==='absensiEkskulGuruV71')e.classList.remove('active');else e.style.display='none';}});
+  const p=document.getElementById('halamanWaliKelas');p.style.display='block';
+  document.getElementById('wkInfoKelas').textContent='Wali kelas: '+penggunaAktif.waliKelas+' • '+penggunaAktif.nama;
+  document.getElementById('wkAbsTanggal').value=wkToday();document.getElementById('wkNilaiTanggal').value=wkToday();
+  wkApi('waliKelasData',{idUser:penggunaAktif.idUser}).then(d=>{wkRoster=d.siswa||[];document.getElementById('wkInfoKelas').textContent='Kelas '+d.guru.waliKelas+' • '+wkRoster.length+' peserta didik • '+d.guru.nama;}).catch(e=>{document.getElementById('wkInfoKelas').textContent='Gagal memuat data kelas: '+e.message;});
+}
+function wkBukaTab(tab){document.getElementById('wkAbsensiPanel').style.display=tab==='absensi'?'block':'none';document.getElementById('wkNilaiPanel').style.display=tab==='nilai'?'block':'none';if(tab==='absensi')wkMuatAbsensi();else wkMuatTabelNilai();}
+function wkKembaliKeMenu(){document.getElementById('halamanWaliKelas').style.display='none';document.getElementById('guruMenuV71').style.display='block';}
+function wkStatus(id,msg,err=false){const e=document.getElementById(id);if(e){e.textContent=msg;e.className='v71-status '+(err?'err':'');}}
+function wkGetAbsParams(){return {idUser:penggunaAktif.idUser,tanggal:document.getElementById('wkAbsTanggal').value,tahunPelajaran:document.getElementById('wkAbsTP').value.trim(),semester:document.getElementById('wkAbsSemester').value,mataPelajaran:document.getElementById('wkAbsMapel').value.trim()};}
+function wkMuatAbsensi(){const p=wkGetAbsParams();if(!p.tanggal||!p.tahunPelajaran||!p.mataPelajaran){wkStatus('wkAbsStatus','Tanggal, tahun pelajaran, dan mata pelajaran wajib diisi.',true);return;}wkStatus('wkAbsStatus','Memuat daftar siswa...');wkApi('waliKelasAbsensiGet',p).then(d=>{wkAbsRows=d.siswa||[];wkRenderAbsensi();wkStatus('wkAbsStatus','Daftar '+wkAbsRows.length+' siswa untuk '+p.mataPelajaran+'.');}).catch(e=>wkStatus('wkAbsStatus','Gagal: '+e.message,true));}
+function wkRenderAbsensi(){const out=document.getElementById('wkAbsTabel');if(!wkAbsRows.length){out.innerHTML='<p>Belum ada siswa di kelas ini. Periksa kolom Kelas pada sheet SISWA.</p>';return;}out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>'+wkAbsRows.map((s,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(s.nama)+'<br><small>'+wkEsc(s.idSiswa)+'</small></td><td><select data-wkabs-status="'+wkEsc(s.idSiswa)+'"><option '+(s.statusAbsensi==='Hadir'?'selected':'')+'>Hadir</option><option '+(s.statusAbsensi==='Sakit'?'selected':'')+'>Sakit</option><option '+(s.statusAbsensi==='Izin'?'selected':'')+'>Izin</option><option '+(s.statusAbsensi==='Alpa'?'selected':'')+'>Alpa</option></select></td><td><input data-wkabs-ket="'+wkEsc(s.idSiswa)+'" value="'+wkEsc(s.keterangan)+'" placeholder="Opsional" style="min-width:100px;width:100%"></td></tr>').join('')+'</tbody></table></div>';}
+function wkSetSemuaStatus(status){document.querySelectorAll('[data-wkabs-status]').forEach(e=>e.value=status);}
+function wkSimpanAbsensi(){const p=wkGetAbsParams();p.data=wkAbsRows.map(s=>({idSiswa:s.idSiswa,status:document.querySelector('[data-wkabs-status="'+CSS.escape(s.idSiswa)+'"]')?.value||'Hadir',keterangan:document.querySelector('[data-wkabs-ket="'+CSS.escape(s.idSiswa)+'"]')?.value||''}));wkStatus('wkAbsStatus','Menyimpan absensi...');wkApi('waliKelasAbsensiSave',{idUser:penggunaAktif.idUser,data:JSON.stringify(p)}).then(d=>wkStatus('wkAbsStatus','✓ '+d.pesan+' ('+d.jumlah+' data).')).catch(e=>wkStatus('wkAbsStatus','Gagal menyimpan: '+e.message,true));}
+function wkMuatTabelNilai(){if(!wkRoster.length){wkStatus('wkNilaiStatus','Memuat daftar siswa...');wkApi('waliKelasData',{idUser:penggunaAktif.idUser}).then(d=>{wkRoster=d.siswa||[];wkRenderNilai();}).catch(e=>wkStatus('wkNilaiStatus','Gagal: '+e.message,true));return;}wkRenderNilai();}
+function wkRenderNilai(){const out=document.getElementById('wkNilaiTabel');if(!wkRoster.length){out.innerHTML='<p>Belum ada siswa untuk kelas ini.</p>';return;}out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Nilai (0–100)</th><th>Deskripsi (opsional)</th></tr></thead><tbody>'+wkRoster.map((s,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(s.nama)+'<br><small>'+wkEsc(s.idSiswa)+'</small></td><td><input type="number" min="0" max="100" step="0.01" data-wknilai="'+wkEsc(s.idSiswa)+'" placeholder="0–100" style="width:90px"></td><td><input data-wkdes="'+wkEsc(s.idSiswa)+'" placeholder="Catatan" style="min-width:100px;width:100%"></td></tr>').join('')+'</tbody></table></div>';wkStatus('wkNilaiStatus','Masukkan nilai untuk '+wkRoster.length+' siswa. Kolom nilai kosong akan dilewati.');}
+function wkSimpanNilai(){const p={idUser:penggunaAktif.idUser,tahunPelajaran:document.getElementById('wkNilaiTP').value.trim(),semester:document.getElementById('wkNilaiSemester').value,mataPelajaran:document.getElementById('wkNilaiMapel').value.trim(),jenisPenilaian:document.getElementById('wkNilaiJenis').value.trim(),tanggal:document.getElementById('wkNilaiTanggal').value,data:wkRoster.map(s=>({idSiswa:s.idSiswa,nilai:document.querySelector('[data-wknilai="'+CSS.escape(s.idSiswa)+'"]')?.value||'',deskripsi:document.querySelector('[data-wkdes="'+CSS.escape(s.idSiswa)+'"]')?.value||''})).filter(x=>x.nilai!=='')};if(!p.data.length){wkStatus('wkNilaiStatus','Masukkan setidaknya satu nilai.',true);return;}wkStatus('wkNilaiStatus','Menyimpan nilai...');wkApi('waliKelasNilaiSave',{idUser:penggunaAktif.idUser,data:JSON.stringify(p)}).then(d=>wkStatus('wkNilaiStatus','✓ '+d.pesan+' ('+d.jumlah+' nilai).')).catch(e=>wkStatus('wkNilaiStatus','Gagal menyimpan: '+e.message,true));}
 
 </script>
 
