@@ -2186,6 +2186,8 @@ body{
 @media(max-width:600px){.v71-manual-search-row{flex-direction:column}}
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
 </head>
 
 
@@ -3202,7 +3204,11 @@ body{
         <div class="v71-field"><label for="wkRekapAbsSemester">Semester</label><select id="wkRekapAbsSemester"><option value="1">Semester 1 (Ganjil)</option><option value="2">Semester 2 (Genap)</option></select></div>
         <div class="v71-field"><label for="wkRekapAbsMapel">Mata Pelajaran (kosong = semua)</label><input id="wkRekapAbsMapel" type="text" placeholder="Contoh: IPAS"></div>
         <div class="v71-field"><label for="wkRekapAbsTTD">Nama Guru Mata Pelajaran (penanda tangan)</label><input id="wkRekapAbsTTD" type="text" placeholder="Nama lengkap guru mapel"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="v71-btn v71-btn-primary" onclick="wkMuatRekap('absensi')">Tampilkan Rekap</button><button class="v71-btn v71-btn-light" onclick="wkCetakRekap('absensi')">🖨️ Cetak / Simpan PDF</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+  <button class="v71-btn v71-btn-primary" onclick="wkMuatRekap('absensi')">Tampilkan Rekap</button>
+  <button class="v71-btn v71-btn-light" onclick="wkCetakRekap('absensi')">🖨️ Cetak / Simpan PDF</button>
+  <button class="v71-btn v71-btn-primary" onclick="wkCetakRekap('absensi','download')">⬇️ Download PDF</button>
+</div>
         <div id="wkRekapAbsStatus" class="v71-status">Pilih bulan untuk melihat rekap.</div><div id="wkRekapAbsHasil"></div>
       </div>
       <div id="wkRekapNilaiPanel" style="display:none;margin-top:18px">
@@ -8001,7 +8007,7 @@ function wkRenderRekapNilai(d,target){
  if(!rows.length){out.innerHTML='<p>Belum ada data nilai pada periode ini.</p>';return;}
  out.innerHTML='<div class="v71-table-wrap"><table class="v71-table"><thead><tr><th>No</th><th>Nama Siswa</th><th>Mata Pelajaran</th><th>Jenis Penilaian</th><th>Nilai</th><th>Deskripsi</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+wkEsc(r.nama)+'</td><td>'+wkEsc(r.mataPelajaran)+'</td><td>'+wkEsc(r.jenisPenilaian)+'</td><td>'+wkEsc(r.nilai)+'</td><td>'+wkEsc(r.deskripsi)+'</td></tr>').join('')+'</tbody></table></div>';
 }
-function wkCetakRekap(jenis){
+function wkCetakRekap(jenis, mode='print'){
  const d=wkRekapAktif[jenis]; if(!d){alert('Tampilkan rekap terlebih dahulu sebelum mencetak.');return;}
  const abs=jenis==='absensi'; const namaTTD=(document.getElementById(abs?'wkRekapAbsTTD':'wkRekapNilaiTTD').value||'').trim();
  if(!namaTTD){alert('Isi nama Guru Mata Pelajaran yang akan bertanda tangan.');return;}
