@@ -8018,7 +8018,79 @@ function wkCetakRekap(jenis, mode='print'){
  const days=abs?(Number(d.jumlahHari)||new Date(Number(d.bulan.slice(0,4)),Number(d.bulan.slice(5,7)),0).getDate()):0;
  const heads=abs?'<th>No</th><th>Nama Siswa</th>'+Array.from({length:days},(_,j)=>'<th>'+(j+1)+'</th>').join('')+'<th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Total</th>':'<th>No</th><th>Nama Siswa</th><th>Mata Pelajaran</th><th>Jenis Penilaian</th><th>Nilai</th><th>Deskripsi</th>';
  const doc='<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Rekap '+(abs?'Absensi':'Nilai')+' Bulanan</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,sans-serif;color:#111;font-size:9px}h1{font-size:18px;text-align:center;margin:0}h2{font-size:14px;text-align:center;margin:5px 0 14px}.meta{margin:16px 0 10px;line-height:1.7}table{border-collapse:collapse;width:100%;margin-top:10px}th,td{border:1px solid #555;padding:3px 4px;text-align:center}td:nth-child(2){text-align:left}th{background:#eee}.num{text-align:center}.signature{width:260px;margin:36px 0 0 auto;text-align:center;line-height:1.6}.signspace{height:58px}.name{text-decoration:underline;font-weight:bold}@media print{button{display:none}}</style></head><body><h1>SD ISLAM TERPADU AZZAHRAH</h1><h2>REKAP '+(abs?'ABSENSI':'NILAI')+' BULANAN</h2><div class="meta">Kelas: '+wkEsc(d.guru.waliKelas)+'<br>Tahun Pelajaran: '+wkEsc(d.tahunPelajaran)+'<br>Semester: '+(d.semester==='1'?'1 (Ganjil)':'2 (Genap)')+'<br>Periode: '+wkEsc(bulanNama)+'<br>Mata Pelajaran: '+wkEsc(d.mataPelajaran||'Semua Mata Pelajaran')+'<br>Jumlah catatan: '+(d.jumlah||0)+'</div><table><thead><tr>'+heads+'</tr></thead><tbody>'+rows+'</tbody></table><div class="signature">'+wkEsc('Gowa')+', '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+'<br>Guru Mata Pelajaran<div class="signspace"></div><div class="name">'+wkEsc(namaTTD)+'</div></div><script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>';
- const w=window.open('','_blank'); if(!w){alert('Popup diblokir. Izinkan popup untuk mencetak PDF.');return;}w.document.open();w.document.write(doc);w.document.close();
+ if (mode === 'download') {
+  if (typeof html2pdf === 'undefined') {
+    alert('Library PDF belum berhasil dimuat. Periksa koneksi internet.');
+    return;
+  }
+
+  const parsed = new DOMParser().parseFromString(doc, 'text/html');
+  const area = document.createElement('div');
+
+  const style = document.createElement('style');
+  style.textContent = Array.from(
+    parsed.head.querySelectorAll('style')
+  ).map(s => s.textContent).join('\n');
+
+  area.appendChild(style);
+
+  const content = parsed.body.cloneNode(true);
+  content.querySelectorAll('script').forEach(s => s.remove());
+  area.appendChild(content);
+
+  area.style.background = '#ffffff';
+  area.style.padding = '10px';
+  area.style.width = '100%';
+
+  const namaFile = 'Rekap_Absensi_' +
+    String(d.guru.waliKelas).replace(/[^a-z0-9]/gi, '_') +
+    '_' + d.bulan + '.pdf';
+
+  const opsi = {
+    margin: 8,
+    filename: namaFile,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'landscape'
+    },
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy']
+    }
+  };
+
+  document.body.appendChild(area);
+
+  html2pdf()
+    .set(opsi)
+    .from(area)
+    .save()
+    .then(() => area.remove())
+    .catch(error => {
+      area.remove();
+      console.error(error);
+      alert('PDF gagal dibuat. Silakan coba kembali.');
+    });
+
+  return;
+}
+
+const w = window.open('', '_blank');
+
+if (!w) {
+  alert('Popup diblokir. Izinkan popup untuk mencetak PDF.');
+  return;
+}
+
+w.document.open();
+w.document.write(doc);
+w.document.close();
 }
 
 </script>
